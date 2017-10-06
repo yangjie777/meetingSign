@@ -1,0 +1,29 @@
+server:
+    context-path: /meetingSign
+    port: 80
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/meetingsign?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: ******
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+  redis:
+    host: ********
+    port: 6379
+wechat:
+   mpAppId: *****
+   mpAppSecret: *****
+meetingSignUrl:
+   meeting: *******
+#  jackson:  此配置为如果值为null则不返回
+#    default-property-inclusion: non_null
+#logging:
+#  pattern:
+#    console: "%d - %msg%n"
+#  file: /var/log/tomcat/sell.log
+##  level: debug   //��־����
+##    %d  ����      %msg  ��־����Ϣ
