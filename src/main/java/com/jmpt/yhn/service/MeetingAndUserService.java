@@ -14,4 +14,5 @@ public interface MeetingAndUserService {
     MeetingAndUser save(MeetingAndUser meetingAndUser);
     MeetingAndUser findMeeting(String openid,String meetingId);
     void deleteMeetingAndUser(String meetingId);
+    List<MeetingAndUser> findById(String id);
 }
