@@ -4,21 +4,21 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost/meetingsign?useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://127.0.0.1:3306/meetingsign?useUnicode=true&characterEncoding=utf8
     username: root
-    password: 123456
+    password: ******
   jpa:
     hibernate:
       ddl-auto: update
       show-sql: true
   redis:
-    host: 172.18.139.2
+    host: ********
     port: 6379
 wechat:
-   mpAppId: wx7d1daaadcfc050ab
-   mpAppSecret: a5a1001b8114dc81aea5a6225165f74c
+   mpAppId: *****
+   mpAppSecret: *****
 meetingSignUrl:
-   meeting: http://nannima.top
+   meeting: *******
 #  jackson:  此配置为如果值为null则不返回
 #    default-property-inclusion: non_null
 #logging:

@@ -7,7 +7,6 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.jmpt.yhn.VO.WxJsVO;
 import com.jmpt.yhn.config.UrlConfig;
 import com.jmpt.yhn.entity.Meeting;
 import com.jmpt.yhn.entity.MeetingAndUser;
@@ -18,8 +17,6 @@ import com.jmpt.yhn.service.MeetingService;
 import com.jmpt.yhn.service.UserInfoService;
 import com.jmpt.yhn.utils.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxJsapiSignature;
-import me.chanjar.weixin.mp.api.WxMpService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -42,8 +39,6 @@ import java.util.*;
 @Slf4j
 public class MeetingController {    //     /user/indexMeeting
     @Autowired
-    private WxMpService wxMpService; //已配置完成
-    @Autowired
     private MeetingService meetingService;
     @Autowired
     private UserInfoService userInfoService;
@@ -51,22 +46,10 @@ public class MeetingController {    //     /user/indexMeeting
     private MeetingAndUserService meetingAndUserService;
     @Autowired
     private UrlConfig urlConfig;
-    @GetMapping("/indexMeeting")   //会议首页
+    @GetMapping("/indexMeeting")   //创建会议
     public ModelAndView index(@RequestParam("openid") String openid,
                                @RequestParam(value = "imgHead",defaultValue = "")  String imgHead,
-                               Map<String,Object> map)throws Exception{
-//        //js jdk
-//        String testUrlgetAccessToken = "http://yaohaonan.natapp1.cc/meetingSign/user/indexMeeting?openid="+openid;
-//        log.info("【查看是否获取到accessToken】,accessToken={}",wxMpService.getAccessToken());  //获得accessToken;
-//        String ticket =  wxMpService.getJsapiTicket();
-//        log.info("【查看是否获取到ticket】,ticket={}",ticket);  //获得accessToken;
-//        WxJsapiSignature wxJsapiSignature = wxMpService.createJsapiSignature(testUrlgetAccessToken);
-//        log.info("【获得参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsapiSignature.getAppId(),wxJsapiSignature.getNonceStr(),wxJsapiSignature.getSignature(),wxJsapiSignature.getTimestamp(),wxJsapiSignature.getUrl());
-//        WxJsVO wxJsVO = new WxJsVO();
-//        BeanUtils.copyProperties(wxJsapiSignature,wxJsVO);
-//        wxJsVO.setTimestamp(String.valueOf(wxJsapiSignature.getTimestamp()));
-//        log.info("【copy参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsVO.getAppId(),wxJsVO.getNonceStr(),wxJsVO.getSignature(),wxJsVO.getTimestamp(),wxJsVO.getUrl());
-//        map.put("wxJsVO",wxJsVO);
+                               Map<String,Object> map){
         map.put("openid",openid);
 //        map.put("imgHead",imgHead);
         UserInfo userInfo = userInfoService.findOne(openid);
@@ -100,7 +83,7 @@ public class MeetingController {    //     /user/indexMeeting
        String path  = request.getSession().getServletContext().getRealPath("/picture");
        System.out.println("路径："+path);
        //创建二维码内容
-       String content = urlConfig.getMeeting()+"/meetingSign/wechat/authorize2?returnUrl="+urlConfig.getMeeting()+"/meetingSign/sign/join?meetingId="+meeting.getMeetingId();
+       String content = urlConfig.getMeeting()+"/meetingSign/wechat/authorize?returnUrl="+urlConfig.getMeeting()+"/meetingSign/sign/join?meetingId="+meeting.getMeetingId();
        //定义二维码参数
        HashMap hints = new HashMap();
        hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");  //定义内容的编码
@@ -119,6 +102,10 @@ public class MeetingController {    //     /user/indexMeeting
            e.printStackTrace();
        }
        meeting.setQRcodeImg(request.getContextPath()+"/picture"+meeting.getMeetingId()+".jpg");
+
+
+
+
        meetingService.save(meeting);
        map.put("msg","创建会议成功！");
        map.put("url","/meetingSign/user/indexMeeting?openid="+form.getOpenid()+"&nickname="+form.getNickname());
@@ -169,10 +156,11 @@ public class MeetingController {    //     /user/indexMeeting
             map.put("path",path);
             return new ModelAndView("page/displayCode",map);
    }
-    @GetMapping("/meetingJoined")   //查看本人某个会议详情
+    @GetMapping("/meetingJoined")
     public ModelAndView meetingJoined(@RequestParam("openid") String openid,
                                       @RequestParam("meetingId") String meetingId,
-                                      Map<String,Object> map)throws Exception{
+                                      Map<String,Object> map){
+
         List<MeetingAndUser> meetingAndUsersList = meetingAndUserService.findByMeetingId(meetingId);
         if(!meetingAndUsersList.isEmpty()){    //判断是否为本人的会议
             Meeting meeting = meetingService.findByMeetId(meetingAndUsersList.get(0).getMeetingId());
@@ -183,19 +171,6 @@ public class MeetingController {    //     /user/indexMeeting
             }
         }
         Meeting meeting = meetingService.findByMeetId(meetingId);
-
-        //js jdk
-        String testUrlgetAccessToken = urlConfig.getMeeting()+"/meetingSign/user/meetingJoined?openid="+openid+"&meetingId="+meetingId;
-        log.info("【查看是否获取到accessToken】,accessToken={}",wxMpService.getAccessToken());  //获得accessToken;
-        String ticket =  wxMpService.getJsapiTicket();
-        log.info("【查看是否获取到ticket】,ticket={}",ticket);  //获得accessToken;
-        WxJsapiSignature wxJsapiSignature = wxMpService.createJsapiSignature(testUrlgetAccessToken);
-        log.info("【获得参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsapiSignature.getAppId(),wxJsapiSignature.getNonceStr(),wxJsapiSignature.getSignature(),wxJsapiSignature.getTimestamp(),wxJsapiSignature.getUrl());
-        WxJsVO wxJsVO = new WxJsVO();
-        BeanUtils.copyProperties(wxJsapiSignature,wxJsVO);
-        wxJsVO.setTimestamp(String.valueOf(wxJsapiSignature.getTimestamp()));
-        log.info("【copy参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsVO.getAppId(),wxJsVO.getNonceStr(),wxJsVO.getSignature(),wxJsVO.getTimestamp(),wxJsVO.getUrl());
-        map.put("wxJsVO",wxJsVO);
         map.put("meeting",meeting);
         map.put("meetingAndUsersList",meetingAndUsersList);
         map.put("openid",openid);

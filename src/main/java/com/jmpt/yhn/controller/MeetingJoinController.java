@@ -1,7 +1,5 @@
 package com.jmpt.yhn.controller;
 
-import com.jmpt.yhn.VO.WxJsVO;
-import com.jmpt.yhn.config.UrlConfig;
 import com.jmpt.yhn.entity.Meeting;
 import com.jmpt.yhn.entity.MeetingAndUser;
 import com.jmpt.yhn.entity.UserInfo;
@@ -10,10 +8,7 @@ import com.jmpt.yhn.service.MeetingService;
 import com.jmpt.yhn.service.PushMessageService;
 import com.jmpt.yhn.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxJsapiSignature;
-import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,10 +36,6 @@ public class MeetingJoinController {
     private UserInfoService userInfoService;
     @Autowired
     private PushMessageService pushMessageService;
-    @Autowired
-    private WxMpService wxMpService; //已配置完成
-    @Autowired
-    private UrlConfig urlConfig;
     @GetMapping("/join")
     public ModelAndView join(@RequestParam("meetingId") String meetingId,
                              @RequestParam("openid") String openid,
@@ -54,20 +45,6 @@ public class MeetingJoinController {
             Meeting meeting = meetingService.findByMeetId(meetingId);
             UserInfo userInfo = userInfoService.findOne(meeting.getOpenid());  //这是会议发起者
             UserInfo myUserInfo = userInfoService.findOne(openid);   //用户本身
-            //js jdk
-            String testUrlgetAccessToken = urlConfig.getMeeting()+"/meetingSign/sign/join?meetingId="+meetingId+"&openid="+openid+"&imgHead="+imgHead;
-            log.info("【查看是否获取到accessToken】,accessToken={}",wxMpService.getAccessToken());  //获得accessToken;
-            String ticket =  wxMpService.getJsapiTicket();
-            log.info("【查看是否获取到ticket】,ticket={}",ticket);  //获得accessToken;
-            WxJsapiSignature wxJsapiSignature = wxMpService.createJsapiSignature(testUrlgetAccessToken);
-            log.info("【获得参数为:】appid={},nonceStr={},signature={},timestamp={},url={}"
-                    ,wxJsapiSignature.getAppId(),wxJsapiSignature.getNonceStr(),wxJsapiSignature.getSignature(),wxJsapiSignature.getTimestamp(),wxJsapiSignature.getUrl());
-            WxJsVO wxJsVO = new WxJsVO();
-            BeanUtils.copyProperties(wxJsapiSignature,wxJsVO);
-            wxJsVO.setTimestamp(String.valueOf(wxJsapiSignature.getTimestamp()));
-            log.info("【copy参数为:】appid={},nonceStr={},signature={},timestamp={},url={}"
-                    ,wxJsVO.getAppId(),wxJsVO.getNonceStr(),wxJsVO.getSignature(),wxJsVO.getTimestamp(),wxJsVO.getUrl());
-            map.put("wxJsVO",wxJsVO);
             map.put("meeting", meeting);
             map.put("openid", openid);
             map.put("nickName", userInfo.getUsername());
@@ -86,8 +63,6 @@ public class MeetingJoinController {
                             @RequestParam("username") String username,
                             @RequestParam("telphone") String telphone,
                             @RequestParam(value = "status",defaultValue = "0")  String status,
-                            @RequestParam("accuracy") String accuracy,
-                            @RequestParam("location") String location,
                             HttpServletResponse response) {
         PrintWriter writer = null;
         response.setCharacterEncoding("UTF-8");
@@ -105,8 +80,6 @@ public class MeetingJoinController {
                     meetingAndUser.setMeetingId(meetingId);
                     meetingAndUser.setTelphone(telphone);
                     meetingAndUser.setName(username);
-                    meetingAndUser.setAccuracy(accuracy);
-                    meetingAndUser.setLocation(location);
                     if (status.equals("1")) {     //本来想如果提交信息和个人信息不符合就提示是否修改，留着
                         userInfo.setUsername(username);
                         userInfo.setTelphone(telphone);

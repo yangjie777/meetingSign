@@ -27,10 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 public class meetSignAuthorizeAspect {
     @Autowired
     private StringRedisTemplate template;
-   @Pointcut("execution(public * com.jmpt.yhn.controller.*.*(..))&&"+"! execution(public * com.jmpt.yhn.controller.Wechat*.*(..))")
+   @Pointcut("execution(public * com.jmpt.yhn.controller.*.*(..))&&"+"!execution(public * com.jmpt.yhn.controller.Wechat*.*(..))")
     public void verify(){} //验证
     @Before("verify()")
-    public void doerify(){    //方法的具体实现
+    public void doerify(){    //方法的具体实现\
         try {
             //获得request
             System.out.println("执行切面");

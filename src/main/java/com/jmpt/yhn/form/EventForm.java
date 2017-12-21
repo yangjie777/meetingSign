@@ -15,6 +15,8 @@ public class EventForm {
     private String openid;
     @NotEmpty(message = "日期不能为空")
     private String eventDate;
+    @NotEmpty(message = "时间不能为空")
+    private String eventTime;
     @NotEmpty(message = "内容不能为空")
     private String eventContent;
 

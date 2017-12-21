@@ -1,5 +1,4 @@
 package com.jmpt.yhn.controller;
-import com.jmpt.yhn.VO.WxJsVO;
 import com.jmpt.yhn.config.UrlConfig;
 import com.jmpt.yhn.constant.CookiesConstant;
 import com.jmpt.yhn.constant.RedisConstant;
@@ -9,13 +8,11 @@ import com.jmpt.yhn.service.UserInfoService;
 import com.jmpt.yhn.utils.CookiesUtil;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
-import me.chanjar.weixin.common.bean.WxJsapiSignature;
 import me.chanjar.weixin.common.exception.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.http.HttpResponse;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -48,7 +45,6 @@ public class WechatController {
     private UrlConfig urlConfig;
     @Autowired
     private StringRedisTemplate redisTemplate;
-
     @GetMapping("/authorize")
     public String authorize(@RequestParam("returnUrl") String returnUrl){
         //1.配置
@@ -61,7 +57,7 @@ public class WechatController {
     @GetMapping("/userInfo")
     public String userInfo(@RequestParam("code") String code,
                            @RequestParam("state") String returnUrl){
-        WxMpOAuth2AccessToken wxMpOAuth2AccessToken = new WxMpOAuth2AccessToken();
+       WxMpOAuth2AccessToken wxMpOAuth2AccessToken = new WxMpOAuth2AccessToken();
         WxMpUser wxMpUser = null;
             try{
                 wxMpOAuth2AccessToken =  wxMpService.oauth2getAccessToken(code);
@@ -95,9 +91,6 @@ public class WechatController {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletResponse response =  attributes.getResponse();
         CookiesUtil.set(response, CookiesConstant.TOKEN,token,1800);
-
-        //设置session
-        attributes.getRequest().getSession().setAttribute("userid",openId);
          if(returnUrl.indexOf("?")!=-1){  //包含问号,说明回调地址带参
              return "redirect:" +returnUrl+"&openid="+openId+"&imgHead="+wxMpUser.getHeadImgUrl();
          }

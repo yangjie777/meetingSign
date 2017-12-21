@@ -42,9 +42,4 @@ public class MeetingAndUserServiceImpl implements MeetingAndUserService{
     public void deleteMeetingAndUser(String meetingId) {
         reponsitory.removeByMeetingId(meetingId);
     }
-
-    @Override
-    public List<MeetingAndUser> findById(String id) {
-        return null;
-    }
 }
