@@ -20,5 +20,10 @@ public class MeetingAndUserReponsitoryTest {
     public void findByOpenidAndAndMeetingId() throws Exception {
         System.out.println( reponsitory.findByOpenidAndAndMeetingId("o4eWZ06xzHW6mc2gMZMYVDEtx1zk","1504942476000575155"));
     }
-
+    @Test
+    public void test(){
+        double i = 0.1;
+        double j = 0.2;
+        System.out.println(i+j);
+    }
 }

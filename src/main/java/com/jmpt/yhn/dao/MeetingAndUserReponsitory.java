@@ -14,5 +14,5 @@ public interface MeetingAndUserReponsitory extends JpaRepository<MeetingAndUser,
     List<MeetingAndUser> findByMeetingId(String meetingId);  //通过会议id查询会议
     List<MeetingAndUser> findByOpenid(String openid);  //根据openid查询已参加的会议
     MeetingAndUser findByOpenidAndAndMeetingId(String openid,String meetingId);
-   void removeByMeetingId(String meetingId);
+    void removeByMeetingId(String meetingId);
 }
