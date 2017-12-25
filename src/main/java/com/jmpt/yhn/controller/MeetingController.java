@@ -21,6 +21,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,9 +52,12 @@ public class MeetingController {    //     /user/indexMeeting
     public ModelAndView index(@RequestParam("openid") String openid,
                                @RequestParam(value = "imgHead",defaultValue = "")  String imgHead,
                                Map<String,Object> map){
-        map.put("openid",openid);
+
 //        map.put("imgHead",imgHead);
-        UserInfo userInfo = userInfoService.findOne(openid);
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
+        UserInfo userInfo = userInfoService.findOne(sessionOpenid);
+        map.put("openid",sessionOpenid);
         map.put("username",userInfo.getUsername());
         map.put("telphone",userInfo.getTelphone());
         return new ModelAndView("page/index",map);
@@ -65,9 +70,12 @@ public class MeetingController {    //     /user/indexMeeting
        if(bindingResult.hasErrors()) {
            log.error("【创建会议Controller】异常，result={}", bindingResult.getFieldError().getDefaultMessage());
        }
+       ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+       String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
        Meeting meeting = new Meeting();
        BeanUtils.copyProperties(form,meeting);
        meeting.setMeetingId(KeyUtil.genUniqueKey());
+       meeting.setOpenid(sessionOpenid);
        meeting.setCreateTime(new Date());
        meeting.setUpdateTime(new Date());
        if("1".equals(form.getMeetingStatus())){
@@ -102,10 +110,6 @@ public class MeetingController {    //     /user/indexMeeting
            e.printStackTrace();
        }
        meeting.setQRcodeImg(request.getContextPath()+"/picture"+meeting.getMeetingId()+".jpg");
-
-
-
-
        meetingService.save(meeting);
        map.put("msg","创建会议成功！");
        map.put("url","/meetingSign/user/indexMeeting?openid="+form.getOpenid()+"&nickname="+form.getNickname());
@@ -114,30 +118,28 @@ public class MeetingController {    //     /user/indexMeeting
    @GetMapping("/myMeeting")
     public ModelAndView myMeeting(@RequestParam("openid") String openid,
                                   Map<String,Object> map){
-       List<Meeting> meetingList =  meetingService.findMyMeeting(openid);
+       ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+       String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
+       List<Meeting> meetingList =  meetingService.findMyMeeting(sessionOpenid);
        map.put("meetingList",meetingList);
-       map.put("openid",openid);
+       map.put("openid",sessionOpenid);
        return new ModelAndView("page/myMeeting",map);
    }
    @GetMapping("/deteleMeeting")
     public ModelAndView detele(@RequestParam("meetingId") String meetingId,
                                @RequestParam("openid") String openid,
                                Map<String,Object> map){
-       UserInfo userInfo = userInfoService.findOne(openid);
-        if(userInfo==null){
-            map.put("msg","删除会议失败！");
-            map.put("url","/meetingSign/user/myMeeting?openid="+openid);
-            return new ModelAndView("common/error",map);
-        }
+       ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+       String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
         Meeting meeting =  meetingService.findByMeetId(meetingId);
         if(meeting==null){
             map.put("msg","删除会议失败！");
-            map.put("url","/meetingSign/user/myMeeting?openid="+openid);
+            map.put("url","/meetingSign/user/myMeeting?openid="+sessionOpenid);
             return new ModelAndView("common/error",map);
         }
-        if(!meeting.getOpenid().equals(openid)){
+        if(!meeting.getOpenid().equals(sessionOpenid)){
             map.put("msg","删除会议失败！");
-            map.put("url","/meetingSign/user/myMeeting?openid="+openid);
+            map.put("url","/meetingSign/user/myMeeting?openid="+sessionOpenid);
             return new ModelAndView("common/error",map);
         }
         List<MeetingAndUser> meetingAndUserList =meetingAndUserService.findByMeetingId(meetingId);
@@ -145,7 +147,7 @@ public class MeetingController {    //     /user/indexMeeting
                 meetingAndUserService.deleteMeetingAndUser(meetingAndUser.getMeetingId());
         }
        meetingService.deteleMeeting(meetingId);
-       return new ModelAndView("redirect:/user/myMeeting?openid="+openid);
+       return new ModelAndView("redirect:/user/myMeeting?openid="+sessionOpenid);
    }
    @GetMapping("/displayCode")
    public ModelAndView displayCode(@RequestParam("openid") String openid,
@@ -160,11 +162,12 @@ public class MeetingController {    //     /user/indexMeeting
     public ModelAndView meetingJoined(@RequestParam("openid") String openid,
                                       @RequestParam("meetingId") String meetingId,
                                       Map<String,Object> map){
-
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
         List<MeetingAndUser> meetingAndUsersList = meetingAndUserService.findByMeetingId(meetingId);
         if(!meetingAndUsersList.isEmpty()){    //判断是否为本人的会议
             Meeting meeting = meetingService.findByMeetId(meetingAndUsersList.get(0).getMeetingId());
-            if(!meeting.getOpenid().equals(openid)){
+            if(!meeting.getOpenid().equals(sessionOpenid)){
                 map.put("msg","错误操作！");
                 map.put("url","/meetingSign/user/myMeeting?openid="+openid);
                 return new ModelAndView("common/error",map);
@@ -181,9 +184,10 @@ public class MeetingController {    //     /user/indexMeeting
                                             @RequestParam("meetingId") String meetingId,
                                             @RequestParam("meetingStatus") String meetingStatus,
                                             Map<String,Object> map){
-
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
           Meeting meeting =  meetingService.findByMeetId(meetingId);
-          if(meeting.getOpenid().equals(openid)){
+          if(meeting.getOpenid().equals(sessionOpenid)){
               if(!meetingStatus.equals(String.valueOf(meeting.getMeetingStatus()))){
                   map.put("msg","会议状态请勿重复修改！");
                   map.put("url","/meetingSign/user/meetingJoined?openid="+openid+"&meetingId="+meetingId);

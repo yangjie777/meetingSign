@@ -22,4 +22,5 @@ public class Event {
     private Date createTime;  //创建时间
     private Date endTime;  //更新时间
     private String eventContent;   //提醒事件内容
+    private String openid;  //用户id--->重构，废除第三张表
 }

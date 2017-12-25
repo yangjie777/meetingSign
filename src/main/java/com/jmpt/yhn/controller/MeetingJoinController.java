@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
@@ -42,9 +44,11 @@ public class MeetingJoinController {
                              @RequestParam("imgHead") String imgHead,
                              Map<String, Object> map) {
         try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
             Meeting meeting = meetingService.findByMeetId(meetingId);
             UserInfo userInfo = userInfoService.findOne(meeting.getOpenid());  //这是会议发起者
-            UserInfo myUserInfo = userInfoService.findOne(openid);   //用户本身
+            UserInfo myUserInfo = userInfoService.findOne(sessionOpenid);   //用户本身
             map.put("meeting", meeting);
             map.put("openid", openid);
             map.put("nickName", userInfo.getUsername());
@@ -65,6 +69,8 @@ public class MeetingJoinController {
                             @RequestParam(value = "status",defaultValue = "0")  String status,
                             HttpServletResponse response) {
         PrintWriter writer = null;
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
         response.setCharacterEncoding("UTF-8");
         try {
             writer = response.getWriter();
@@ -73,7 +79,7 @@ public class MeetingJoinController {
             if(String.valueOf(meeting1.getMeetingStatus()).equals("1")) {
                 if (meeting == null) {
                     log.info("【用户签到】未签到。openid={}", openid);
-                    UserInfo userInfo = userInfoService.findOne(openid);
+                    UserInfo userInfo = userInfoService.findOne(sessionOpenid);
                     MeetingAndUser meetingAndUser = new MeetingAndUser();
                     meetingAndUser.setOpenid(openid);
                     meetingAndUser.setCreateTime(new Date());

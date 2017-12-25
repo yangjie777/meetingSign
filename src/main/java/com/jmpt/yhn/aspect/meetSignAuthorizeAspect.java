@@ -30,7 +30,7 @@ public class meetSignAuthorizeAspect {
    @Pointcut("execution(public * com.jmpt.yhn.controller.*.*(..))&&"+"!execution(public * com.jmpt.yhn.controller.Wechat*.*(..))")
     public void verify(){} //验证
     @Before("verify()")
-    public void doerify(){    //方法的具体实现\
+    public void doerify(){    //方法的具体实现
         try {
             //获得request
             System.out.println("执行切面");
@@ -46,6 +46,13 @@ public class meetSignAuthorizeAspect {
             String tokenValue = template.opsForValue().get(String.format(RedisConstant.TOKEN_PREFIX, cookie.getValue()));
             if (StringUtils.isEmpty(tokenValue)) {
                 log.warn("【登陆校验】Redis查询不到token");
+                throw new meetingSignAuthorizeException();
+            }
+            //session查询。
+          String openid =  (String)attributes.getRequest().getSession().getAttribute("openid");
+            log.info("切面openid，openid={}",openid);
+            if(openid==null&&openid.equals("")){
+                log.warn("【登陆校验】无session信息");
                 throw new meetingSignAuthorizeException();
             }
         }catch(Exception e){

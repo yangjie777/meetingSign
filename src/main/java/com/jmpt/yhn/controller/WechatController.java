@@ -77,6 +77,9 @@ public class WechatController {
             user.setCreateTime(new Date());
             user.setUpdateTime(new Date());
             userInfoService.save(user);
+        }else{
+            userInfo.setImgHead(wxMpUser.getHeadImgUrl());
+            userInfoService.save(userInfo);
         }
         //设置token至redis
         String token = UUID.randomUUID().toString();
@@ -89,6 +92,7 @@ public class WechatController {
         }
         //设置token至cookies
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        attributes.getRequest().getSession().setAttribute("openid",openId);
         HttpServletResponse response =  attributes.getResponse();
         CookiesUtil.set(response, CookiesConstant.TOKEN,token,1800);
          if(returnUrl.indexOf("?")!=-1){  //包含问号,说明回调地址带参

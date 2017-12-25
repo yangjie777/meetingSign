@@ -69,7 +69,7 @@
             var username =  document.getElementById("username").value;
             var telphone =  document.getElementById("telphone").value;
               var meetingform = document.getElementById("meetingform");
-            if(username.length>=2&&telphone.length>=4) {
+            if(username.length>=1&&telphone.length>=4) {
                 var meetName =  document.getElementById("meetName").value;
                 if(meetName.length>=1){
                     meetingform.submit();

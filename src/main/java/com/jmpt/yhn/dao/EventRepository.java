@@ -11,6 +11,5 @@ import java.util.List;
  */
 public interface EventRepository extends JpaRepository<Event,String> {
     Event findByEventId(String eventId);
-    List<Event> findByEventContentLike(String eventContent);
-    Page<Event> findByEventContentLike(String eventContent, Pageable pageable);  //分页查询
+    Page<Event> findByOpenid(String openid,Pageable pageable);  //分页查询
 }

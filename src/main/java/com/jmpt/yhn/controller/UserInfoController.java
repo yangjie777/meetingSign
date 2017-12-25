@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
@@ -35,7 +37,9 @@ public class UserInfoController {
    @GetMapping("/lookUserInfo")
     public ModelAndView lookUserInfo(@RequestParam("openid") String openid,
                              Map<String,Object> map){
-       UserInfo userInfo =  userInfoService.findOne(openid);
+       ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+       String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
+       UserInfo userInfo =  userInfoService.findOne(sessionOpenid);
        map.put("userInfo",userInfo);
        map.put("openid",openid);
        return new ModelAndView("page/userInfo",map);
@@ -45,7 +49,9 @@ public class UserInfoController {
                             @RequestParam("username") String username,
                             @RequestParam("telphone") String telphone,
                             Map<String,Object> map){
-       UserInfo userInfo = userInfoService.findOne(openid);
+       ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+       String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
+       UserInfo userInfo = userInfoService.findOne(sessionOpenid);
        userInfo.setUsername(username);
        userInfo.setTelphone(telphone);
        userInfoService.save(userInfo);
@@ -56,7 +62,9 @@ public class UserInfoController {
     @GetMapping("/joinedMeeting")
    public ModelAndView joinedMeeting(@RequestParam("openid") String openid
                                         ,Map<String,Object> map){
-        List<MeetingAndUser> meetingAndUserList = meetingAndUserService.findByOpenid(openid);
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
+        List<MeetingAndUser> meetingAndUserList = meetingAndUserService.findByOpenid(sessionOpenid);
         List<Meeting> meetingList = new ArrayList<Meeting>();
         for(MeetingAndUser meetingAndUser :meetingAndUserList){
             meetingList.add(meetingService.findByMeetId(meetingAndUser.getMeetingId()));
