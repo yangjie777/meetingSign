@@ -22,4 +22,6 @@ public class MeetingAndUser {
     private String name;    //签到名
     private Date createTime;  //签到时间
     private String telphone;  //手机号码
+    private String location;//经纬度
+    private String accuracy;  //位置精度
 }

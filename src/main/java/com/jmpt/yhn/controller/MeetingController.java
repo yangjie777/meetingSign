@@ -16,7 +16,10 @@ import com.jmpt.yhn.service.MeetingAndUserService;
 import com.jmpt.yhn.service.MeetingService;
 import com.jmpt.yhn.service.UserInfoService;
 import com.jmpt.yhn.utils.KeyUtil;
+import com.jmpt.yhn.vo.WxJsVO;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.bean.WxJsapiSignature;
+import me.chanjar.weixin.mp.api.WxMpService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -40,6 +43,8 @@ import java.util.*;
 @RequestMapping("/user")
 @Slf4j
 public class MeetingController {    //     /user/indexMeeting
+    @Autowired
+    private WxMpService wxMpService; //已配置完成
     @Autowired
     private MeetingService meetingService;
     @Autowired
@@ -161,19 +166,31 @@ public class MeetingController {    //     /user/indexMeeting
     @GetMapping("/meetingJoined")
     public ModelAndView meetingJoined(@RequestParam("openid") String openid,
                                       @RequestParam("meetingId") String meetingId,
-                                      Map<String,Object> map){
+                                      Map<String,Object> map)throws Exception{
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         String sessionOpenid = (String)attributes.getRequest().getSession().getAttribute("openid");
         List<MeetingAndUser> meetingAndUsersList = meetingAndUserService.findByMeetingId(meetingId);
         if(!meetingAndUsersList.isEmpty()){    //判断是否为本人的会议
             Meeting meeting = meetingService.findByMeetId(meetingAndUsersList.get(0).getMeetingId());
             if(!meeting.getOpenid().equals(sessionOpenid)){
-                map.put("msg","错误操作！");
+                map.put("msg","无权限！");
                 map.put("url","/meetingSign/user/myMeeting?openid="+openid);
                 return new ModelAndView("common/error",map);
             }
         }
         Meeting meeting = meetingService.findByMeetId(meetingId);
+        //js jdk
+        String testUrlgetAccessToken = urlConfig.getMeeting()+"/meetingSign/user/meetingJoined?openid="+openid+"&meetingId="+meetingId;
+        log.info("【查看是否获取到accessToken】,accessToken={}",wxMpService.getAccessToken());  //获得accessToken;
+        String ticket =  wxMpService.getJsapiTicket();
+        log.info("【查看是否获取到ticket】,ticket={}",ticket);  //获得accessToken;
+        WxJsapiSignature wxJsapiSignature = wxMpService.createJsapiSignature(testUrlgetAccessToken);
+        log.info("【获得参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsapiSignature.getAppId(),wxJsapiSignature.getNonceStr(),wxJsapiSignature.getSignature(),wxJsapiSignature.getTimestamp(),wxJsapiSignature.getUrl());
+        WxJsVO wxJsVO = new WxJsVO();
+        BeanUtils.copyProperties(wxJsapiSignature,wxJsVO);
+        wxJsVO.setTimestamp(String.valueOf(wxJsapiSignature.getTimestamp()));
+        log.info("【copy参数为:】appid={},nonceStr={},signature={},timestamp={},url={}",wxJsVO.getAppId(),wxJsVO.getNonceStr(),wxJsVO.getSignature(),wxJsVO.getTimestamp(),wxJsVO.getUrl());
+        map.put("wxJsVO",wxJsVO);
         map.put("meeting",meeting);
         map.put("meetingAndUsersList",meetingAndUsersList);
         map.put("openid",openid);
